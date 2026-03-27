@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WOPR — War Operation Plan Response</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body data-theme="modern">
+
+  <!-- ── Settings modal (fixed overlay) ── -->
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-panel">
+      <div class="settings-header">◆ SYSTEM CONFIGURATION</div>
+
+      <div class="cfg-group">
+        <label>OLLAMA BASE URL</label>
+        <input type="text" id="cfg-url" placeholder="http://localhost:11434" />
+      </div>
+
+      <div class="cfg-group">
+        <button class="cfg-test-btn" id="cfg-test">TEST CONNECTION</button>
+        <div id="cfg-status" class="cfg-status"></div>
+      </div>
+
+      <div class="cfg-group">
+        <label>MODEL</label>
+        <select id="cfg-model">
+          <option value="">-- select model --</option>
+        </select>
+      </div>
+
+      <div class="cfg-group">
+        <label>TEMPERATURE: <span id="cfg-temp-label">0.7</span></label>
+        <input type="range" id="cfg-temp" min="0" max="1" step="0.05" value="0.7" />
+      </div>
+
+      <div class="cfg-buttons">
+        <button id="cfg-save">SAVE CONFIG</button>
+        <button id="cfg-cancel">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Main WOPR chassis ── -->
+  <div class="wopr-shell">
+
+    <!-- Alert ticker -->
+    <div class="ticker-bar">
+      <span class="ticker-label">◆ NORAD</span>
+      <div class="ticker-track-wrap">
+        <div class="ticker-track" id="ticker-track"></div>
+      </div>
+    </div>
+
+    <!-- 3-panel area -->
+    <div class="panels">
+
+      <!-- Left: AI Advisor -->
+      <div class="panel panel-ai" id="panel-ai">
+        <div class="panel-header">AI ADVISOR — JOSHUA</div>
+        <div class="panel-body">
+
+          <div class="ai-conn">
+            <span class="led" id="led-ai"></span>
+            <span class="ai-status" id="ai-status">OFFLINE</span>
+          </div>
+          <div class="ai-model" id="ai-model">NO MODEL</div>
+
+          <div class="panel-divider"></div>
+
+          <div class="ai-rec-label">RECOMMENDATION</div>
+          <div class="ai-rec" id="ai-rec">AWAITING GAME STATE...</div>
+          <div class="ai-reasoning" id="ai-reasoning"></div>
+          <div class="ai-confidence" id="ai-confidence"></div>
+
+          <div class="panel-divider"></div>
+
+          <div class="ai-rec-label">ACTION QUEUE</div>
+          <div class="ai-queue" id="ai-queue"></div>
+
+          <div class="ai-actions">
+            <button class="ai-btn" id="btn-enact">ENACT</button>
+            <button class="ai-btn" id="btn-enact-all">ALL</button>
+            <button class="ai-btn ai-btn-skip" id="btn-skip">SKIP</button>
+          </div>
+
+          <div class="panel-divider"></div>
+
+          <button class="ai-btn ai-btn-wide" id="btn-ai-query">ANALYZE</button>
+          <button class="ai-btn ai-btn-wide ai-btn-dim" id="btn-training">TRAINING: OFF</button>
+
+        </div>
+      </div>
+
+      <!-- Center: CRT terminal -->
+      <div class="panel panel-crt">
+        <div class="crt" id="crt">
+          <img class="splash-img" id="splash-img" src="splash.png" alt="" />
+          <div class="scanlines"></div>
+          <div class="vignette"></div>
+
+          <div class="terminal" id="terminal">
+            <div class="output" id="output"></div>
+            <div class="input-row" id="input-row">
+              <span class="prompt" id="prompt"></span>
+              <span class="input-display" id="input-display"></span>
+              <span class="cursor" id="cursor">█</span>
+            </div>
+          </div>
+
+          <canvas class="worldmap" id="worldmap" width="900" height="450"></canvas>
+
+          <div class="ttt-overlay" id="ttt-overlay" style="display:none">
+            <div class="ttt-header" id="ttt-header">TIC-TAC-TOE — PLAYER: X &nbsp;|&nbsp; WOPR: O</div>
+            <div class="ttt-board" id="ttt-board">
+              <div class="ttt-cell" data-idx="0"></div><div class="ttt-cell ttt-v" data-idx="1"></div><div class="ttt-cell" data-idx="2"></div>
+              <div class="ttt-cell ttt-h" data-idx="3"></div><div class="ttt-cell ttt-v ttt-h" data-idx="4"></div><div class="ttt-cell ttt-h" data-idx="5"></div>
+              <div class="ttt-cell" data-idx="6"></div><div class="ttt-cell ttt-v" data-idx="7"></div><div class="ttt-cell" data-idx="8"></div>
+            </div>
+            <div class="ttt-status" id="ttt-status">YOUR MOVE. CLICK A SQUARE.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: System Status -->
+      <div class="panel panel-status">
+        <div class="panel-header">SYSTEM STATUS</div>
+        <div class="panel-body">
+
+          <div class="defcon-big" id="defcon-big">DEFCON 5</div>
+
+          <div class="panel-divider"></div>
+
+          <div class="status-item"><span class="led led--on"></span> NORAD UPLINK</div>
+          <div class="status-item"><span class="led led--on"></span> PENTAGON</div>
+          <div class="status-item"><span class="led led--on"></span> SAC COMMAND</div>
+          <div class="status-item"><span class="led" id="led-ollama"></span> OLLAMA AI</div>
+          <div class="status-item"><span class="led led--warn"></span> EARLY WARNING</div>
+          <div class="status-item"><span class="led led--warn"></span> LAUNCH AUTH</div>
+
+          <div class="panel-divider"></div>
+
+          <div class="panel-label">SYSTEM LOG</div>
+          <div class="sys-log" id="sys-log"></div>
+
+        </div>
+      </div>
+
+    </div><!-- end .panels -->
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <span class="led led--on"></span> POWER &nbsp;&nbsp;
+      <span class="led" id="led-activity"></span> ACTIVITY &nbsp;&nbsp;
+      <span class="led led--warn" id="led-defcon"></span> DEFCON &nbsp;&nbsp;
+      <span class="defcon-display" id="defcon-display">DEFCON 5</span>
+      <button class="settings-btn" id="quit-btn" style="display:none">[QUIT GAME]</button>
+      <button class="settings-btn" id="theme-btn">[CRT MODE]</button>
+      <button class="settings-btn" id="settings-btn">[SETTINGS]</button>
+    </div>
+
+  </div><!-- end .wopr-shell -->
+
+  <script src="wopr.js"></script>
+  <script src="wopr-ai.js"></script>
+  <script>
+    (function () {
+      const btn = document.getElementById('theme-btn');
+      const body = document.body;
+      const saved = localStorage.getItem('wopr-theme') || 'modern';
+      body.dataset.theme = saved;
+      btn.textContent = saved === 'crt' ? '[MODERN]' : '[CRT MODE]';
+      btn.addEventListener('click', () => {
+        const next = body.dataset.theme === 'crt' ? 'modern' : 'crt';
+        body.dataset.theme = next;
+        localStorage.setItem('wopr-theme', next);
+        btn.textContent = next === 'crt' ? '[MODERN]' : '[CRT MODE]';
+      });
+    })();
+  </script>
+</body>
+</html>

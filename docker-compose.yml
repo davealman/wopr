@@ -1,0 +1,19 @@
+services:
+
+  wopr:
+    image: nginx:alpine
+    container_name: wopr
+    ports:
+      - "1983:80"          # Port 1983 — year WarGames was released
+    volumes:
+      - ./:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - ollama-net
+    restart: unless-stopped
+    labels:
+      - "description=WOPR — War Operation Plan Response terminal simulation"
+
+networks:
+  ollama-net:
+    external: true         # Managed by ollama-stack — start that first
